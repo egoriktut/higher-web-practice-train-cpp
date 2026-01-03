@@ -36,7 +36,7 @@ int main() {
             if (sorting_hill.CheckEvent(next_event)) {
                 std::cout << "Команда дежурного: "s << next_event << std::endl;
                 sorting_hill.HandleEvent(next_event);
-                // std::this_thread::sleep_for(std::chrono::milliseconds(200));
+                std::this_thread::sleep_for(std::chrono::milliseconds(200));
             }
         } catch (const std::out_of_range& error_message) {
             std::cerr << "Произошла ошибка обработки: "s << error_message.what() << std::endl;
