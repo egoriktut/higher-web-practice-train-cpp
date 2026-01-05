@@ -7,6 +7,7 @@
 #include <memory>
 #include <optional>
 #include <queue>
+#include <unordered_map>
 #include <vector>
 #include <map>
 
@@ -14,31 +15,31 @@ class SortingHillStats {
 public:
     size_t GetPathSetuped() const;
     size_t GetTrinesPlaned() const;
-    std::map<LocoType, size_t> GetLocomotivesArrived() const;
-    std::map<WagonType, size_t> GetWagonStats() const;
-    std::map<TrainType, size_t> GetTrainsSentAmount() const;
+    std::unordered_map<LocoType, size_t> GetLocomotivesArrived() const;
+    std::unordered_map<WagonType, size_t> GetWagonStats() const;
+    std::unordered_map<TrainType, size_t> GetTrainsSentAmount() const;
 
-    void incPath();
-    void incTrainsPlaned();
-    void incLoco(const Locomotive &locomotive);
-    void incWagon(const Wagon& wagon);
-    void incTrainsSent(const TrainType train_type);
+    void IncPath();
+    void IncTrainsPlaned();
+    void IncLoco(const Locomotive &locomotive);
+    void IncWagon(const Wagon &wagon);
+    void IncTrainsSent(const TrainType train_type);
 
 private:
     size_t path_setuped_ = 0;
     size_t trians_planed_ = 0;
-    std::map<WagonType, size_t> wagons_stats_{
+    std::unordered_map<WagonType, size_t> wagons_stats_{
         {WagonType::kDanger, 0},
         {WagonType::kFreight, 0},
         {WagonType::kPass, 0},
         {WagonType::kEmpty, 0},
     };
-    std::map<TrainType, size_t> trains_sent_{
+    std::unordered_map<TrainType, size_t> trains_sent_{
         {TrainType::kDanger, 0},
         {TrainType::kFreight, 0},
         {TrainType::kPass, 0},
     };
-    std::map<LocoType, size_t> locomotives_arrived_{
+    std::unordered_map<LocoType, size_t> locomotives_arrived_{
         {LocoType::kDiesel24, 0},
         {LocoType::kDiesel64, 0},
         {LocoType::kElectro16, 0},
@@ -51,12 +52,12 @@ public:
     explicit SortingHill(size_t number_of_paths,
                          std::vector<std::unique_ptr<SortingHandler>> handlers);
 
-    void AddWagon(Wagon wagon);
+    void AddWagon(const Wagon &wagon);
     bool IsWagonBuffer() const;
     size_t GetNumberOfPaths() const;
     size_t GetNumberOfWagBuffer() const;
-    std::map<WagonType, std::vector<Wagon>> GetWagQueue() const;
-    SortingHillStats GetStats() const;
+    std::unordered_map<WagonType, std::vector<Wagon>> GetWagQueue() const;
+    const SortingHillStats & GetStats() const;
     bool IsChangedCommited() const;
     bool CheckEvent(EventType event) const;
     void HandleEvent(EventType event);
@@ -70,17 +71,17 @@ public:
     // Обработчики от Handler-ов
     void SetupPath();
     void SetupLocomotiveToPath();
-    void AddLocomotiveToQueue(const Locomotive locomotive);
-    void AddWagonToQueue(const Wagon wagon);
+    void AddLocomotiveToQueue(const Locomotive &locomotive);
+    void AddWagonToQueue(const Wagon &wagon);
     void SendTrain();
     void EndShiftAndSendAllLocomotives();
 
     // stats
-    void incPath();
-    void incTrainsPlaned();
-    void incLoco(const Locomotive &locomotive);
-    void incWagon(const Wagon& wagon);
-    void incTrainsSent();
+    void IncPath();
+    void IncTrainsPlaned();
+    void IncLoco(const Locomotive &locomotive);
+    void IncWagon(const Wagon &wagon);
+    void IncTrainsSent();
 
 private:
     std::vector<std::unique_ptr<SortingHandler>> handlers_;
@@ -92,7 +93,7 @@ private:
     // Стоящие в очереди после выдачи <вместимость, ждущие локомотивы>
     std::queue<Locomotive> free_locomotives_;
     // Стоящие в очереди после выдачи <тип вагона, ждущие вагоны>
-    std::map<WagonType, std::vector<Wagon>> free_wagons_;
+    std::unordered_map<WagonType, std::vector<Wagon>> free_wagons_;
     // Пути <номер, поезд (локомотив и вагоны)>
     std::map<int, std::optional<Train>> paths_;
 
@@ -106,7 +107,7 @@ private:
     void PopWagon();
 
     // Prints
-    void printSendTrain(const int path_index) const;
+    void PrintSendTrain(const int path_index) const;
 
     // Вспомогательные методы
     int GetFirstFreePath() const;

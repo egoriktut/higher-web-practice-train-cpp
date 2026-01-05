@@ -20,35 +20,35 @@ size_t SortingHillStats::GetTrinesPlaned() const {
     return trians_planed_;
 }
 
-std::map<LocoType, size_t> SortingHillStats::GetLocomotivesArrived() const {
+std::unordered_map<LocoType, size_t> SortingHillStats::GetLocomotivesArrived() const {
     return locomotives_arrived_;
 }
 
-std::map<WagonType, size_t> SortingHillStats::GetWagonStats() const {
+std::unordered_map<WagonType, size_t> SortingHillStats::GetWagonStats() const {
     return wagons_stats_;
 }
 
-std::map<TrainType, size_t> SortingHillStats::GetTrainsSentAmount() const {
+std::unordered_map<TrainType, size_t> SortingHillStats::GetTrainsSentAmount() const {
     return trains_sent_;
 }
 
-void SortingHillStats::incPath() {
+void SortingHillStats::IncPath() {
     path_setuped_++;
 }
 
-void SortingHillStats::incTrainsPlaned() {
+void SortingHillStats::IncTrainsPlaned() {
     trians_planed_++;
 }
 
-void SortingHillStats::incLoco(const Locomotive &locomotive) {
+void SortingHillStats::IncLoco(const Locomotive &locomotive) {
     locomotives_arrived_[locomotive.loco_type]++;
 }
 
-void SortingHillStats::incWagon(const Wagon& wagon) {
+void SortingHillStats::IncWagon(const Wagon &wagon) {
     wagons_stats_[wagon.wagon_type]++;
 }
 
-void SortingHillStats::incTrainsSent(const TrainType train_type) {
+void SortingHillStats::IncTrainsSent(const TrainType train_type) {
     trains_sent_[train_type]++;
 }
 
@@ -73,11 +73,11 @@ size_t SortingHill::GetNumberOfWagBuffer() const {
     return wagon_buffer_.size();
 }
 
-std::map<WagonType, std::vector<Wagon>> SortingHill::GetWagQueue() const {
+std::unordered_map<WagonType, std::vector<Wagon>> SortingHill::GetWagQueue() const {
     return free_wagons_;
 }
 
-void SortingHill::AddWagon(Wagon wagon) {
+void SortingHill::AddWagon(const Wagon &wagon) {
     wagon_buffer_.push(wagon);
 }
 
@@ -93,26 +93,33 @@ bool SortingHill::IsChangedCommited() const {
     return changed_commited_;
 }
 
-SortingHillStats SortingHill::GetStats() const {
+const SortingHillStats & SortingHill::GetStats() const {
     return stats_;
 }
 
 /* 
 * Prints
 */
-void SortingHill::printSendTrain(const int path_index) const {
+void SortingHill::PrintSendTrain(const int path_index) const {
+    const auto path_it = paths_.find(path_index);
+    if (path_it == paths_.end()) {
+        return;
+    }
+    const Train & train = path_it->second.value();
+    const std::vector<Wagon> & wagons = path_it->second.value().wagons;
     int empty_wagons_in_train = std::count_if(
-            paths_.at(path_index).value().wagons.begin(), paths_.at(path_index).value().wagons.end(), [](Wagon wagon) {
+        wagons.begin(), wagons.end(), [](const Wagon &wagon) {
                 return wagon.wagon_type == WagonType::kEmpty;
-            });
+        }
+    );
     std::cout << "Отправлен поезд: " 
         << std::setfill('0') 
         << std::setw(4)
-        << paths_.at(path_index).value().number.value()
-        << paths_.at(path_index).value().train_type.value() << " \\ "
-        << "локомотив: " << paths_.at(path_index).value().locomotive.value().loco_type << " \\ "
-        << "вагонов в составе всего: " << paths_.at(path_index).value().wagons.size() << " -> "
-        << "специальных: " << paths_.at(path_index).value().wagons.size() - empty_wagons_in_train 
+        << train.number.value()
+        << train.train_type.value() << " \\ "
+        << "локомотив: " << train.locomotive.value().loco_type << " \\ "
+        << "вагонов в составе всего: " << wagons.size() << " -> "
+        << "специальных: " << wagons.size() - empty_wagons_in_train 
         << ", пустых: " << empty_wagons_in_train
     << std::endl;
 }
@@ -120,12 +127,20 @@ void SortingHill::printSendTrain(const int path_index) const {
 /* 
 * Stats
 */
-void SortingHill::incPath() { stats_.incPath(); }
-void SortingHill::incTrainsPlaned() { stats_.incTrainsPlaned(); }
-void SortingHill::incLoco(const Locomotive &locomotive) { stats_.incLoco(locomotive); }
-void SortingHill::incWagon(const Wagon& wagon) { stats_.incWagon(wagon); }
-void SortingHill::incTrainsSent() {
-    stats_.incTrainsSent(last_sent_train_.value().train_type.value()); 
+void SortingHill::IncPath() { 
+    stats_.IncPath();
+ }
+void SortingHill::IncTrainsPlaned() { 
+    stats_.IncTrainsPlaned();
+ }
+void SortingHill::IncLoco(const Locomotive &locomotive) { 
+    stats_.IncLoco(locomotive);
+ }
+void SortingHill::IncWagon(const Wagon& wagon) { 
+    stats_.IncWagon(wagon);
+ }
+void SortingHill::IncTrainsSent() {
+    stats_.IncTrainsSent(last_sent_train_.value().train_type.value()); 
     last_sent_train_.reset();
 }
 
@@ -135,7 +150,7 @@ void SortingHill::incTrainsSent() {
 */
 int SortingHill::GetFirstFreePath() const {
     int first_free_path_num = -1;
-    for (auto [path_num, train] : paths_) {
+    for (const auto &[path_num, train] : paths_) {
         if (!train.has_value()) {
             first_free_path_num = path_num;
             break;
@@ -146,7 +161,7 @@ int SortingHill::GetFirstFreePath() const {
 
 int SortingHill::GetFirstSetupedPathWithoutTrain() const {
     int first_setup_whitout_train_path_num = -1;
-    for (auto [path_num, train] : paths_) {
+    for (const auto &[path_num, train] : paths_) {
         if (train.has_value() && !train.value().locomotive.has_value()) {
             first_setup_whitout_train_path_num = path_num;
             break;
@@ -156,11 +171,20 @@ int SortingHill::GetFirstSetupedPathWithoutTrain() const {
 }
 
 void SortingHill::LoadTrainTypeWagons(std::optional<Train> &train) {
-    WagonType loading_wagon_type = trainWagonMapper.at(train.value().train_type.value());
+    if (
+        !train.has_value() 
+        || !train.value().train_type.has_value()
+         || !train.value().locomotive.has_value()
+    ) {
+        return;
+    }
+    // Не считаю что тут надо менять на find, это статический мапы с типами.
+    const WagonType loading_wagon_type = trainWagonMapper.at(train.value().train_type.value());
+    const int current_locomotive_capacity = locomotiveCapacity.at(train.value().locomotive.value().loco_type);
     while (
         free_wagons_.at(loading_wagon_type).size() > 0 
         &&
-        locomotiveCapacity.at(train.value().locomotive.value().loco_type) > train.value().wagons.size() 
+        current_locomotive_capacity > train.value().wagons.size() 
     ) {
         train.value().wagons.push_back(free_wagons_.at(loading_wagon_type).back());
         free_wagons_[loading_wagon_type].pop_back();
@@ -172,22 +196,23 @@ void SortingHill::ManageWagons() {
         if (!train.has_value() || !train.value().locomotive.has_value()) {
             continue;
         }
+        Train &_train = train.value();
         if (
-            locomotiveCapacity.at(train.value().locomotive.value().loco_type) > train.value().wagons.size()
+            locomotiveCapacity.at(_train.locomotive.value().loco_type) > _train.wagons.size()
         ) {
-            if (!train.value().train_type.has_value()) {
+            if (!_train.train_type.has_value()) {
                 // Определения типа поезда, берем самое большое кол-во вагонов, без учета пустых
                 std::pair<WagonType, int> huge_wagon_type{
                     wagonPriorityToSend[0], free_wagons_[wagonPriorityToSend[0]].size()
                 };
-                for (WagonType wagon_type : wagonPriorityToSend) {
+                for (const WagonType wagon_type : wagonPriorityToSend) {
                     if (free_wagons_[wagon_type].size() > huge_wagon_type.second) {
                         huge_wagon_type.first = wagon_type;
                         huge_wagon_type.second = free_wagons_[wagon_type].size();
                     }
                 }
-                train.value().train_type = wagonTrainMapper.at(huge_wagon_type.first);
-                train.value().number = train_amount_;
+                _train.train_type = wagonTrainMapper.at(huge_wagon_type.first);
+                _train.number = train_amount_;
                 train_amount_++;
             }
             // Загрузка вагонов
@@ -198,13 +223,15 @@ void SortingHill::ManageWagons() {
 
 std::pair<int, int> SortingHill::GetMostValuablePathWihitTrainToSend() const {
     std::pair<int, int> most_valuable_path{-1,-1};
-    for (auto [path_num, train] : paths_) {
+    for (const auto &[path_num, train] : paths_) {
         if (!train.has_value() || !train.value().locomotive.has_value()) {
             continue;
         }
+        const Train &_train = train.value();
         // Ищем минимальную разницу между максимальной и текущейзагрузкой поезда
+        // Не считаю что тут надо менять на find, это статический мапы с типами.
         int diff_load = 
-            locomotiveCapacity.at(train.value().locomotive.value().loco_type) - train.value().wagons.size();
+            locomotiveCapacity.at(_train.locomotive.value().loco_type) - _train.wagons.size();
         if (diff_load == 0) {
             return {path_num, 0};
         }
@@ -215,7 +242,10 @@ std::pair<int, int> SortingHill::GetMostValuablePathWihitTrainToSend() const {
         else if (diff_load == most_valuable_path.second) {
             // Сравнения по приоритетам
             if (
-                trainPriorityToSend.at(train.value().train_type.value()) 
+                _train.train_type.has_value()
+                &&
+                // Не считаю что тут надо менять на find, это статический мапы с типами.
+                trainPriorityToSend.at(_train.train_type.value()) 
                 < trainPriorityToSend.at(
                     paths_.at(most_valuable_path.first).value().train_type.value()
                 )
@@ -262,15 +292,18 @@ void SortingHill::SetupLocomotiveToPath() {
     << std::endl;
 }
 
-void SortingHill::AddLocomotiveToQueue(const Locomotive locomotive) {
+void SortingHill::AddLocomotiveToQueue(const Locomotive &locomotive) {
     free_locomotives_.push(locomotive);
-    std::cout << "В отстойник добавлен локомотив " << locomotive.loco_type 
-        << " \\ всего локомотивов -> "  << free_locomotives_.size() 
+    std::cout 
+        << "В отстойник добавлен локомотив " 
+        << locomotive.loco_type 
+        << " \\ всего локомотивов -> "
+        << free_locomotives_.size() 
     << std::endl;
     changed_commited_ = true;
 }
 
-void SortingHill::AddWagonToQueue(const Wagon wagon) {
+void SortingHill::AddWagonToQueue(const Wagon &wagon) {
     free_wagons_[wagon.wagon_type].push_back(wagon);
     std::cout << "В отстойник добавлен вагон " << wagon.number << " | " << wagon.wagon_type
         << " \\ всего выгонов -> "  << free_wagons_
@@ -298,7 +331,7 @@ void SortingHill::SendTrain() {
             free_wagons_[WagonType::kEmpty].pop_back();
         }
     }
-    printSendTrain(train_send_info.first);
+    PrintSendTrain(train_send_info.first);
     last_sent_train_ = paths_.at(train_send_info.first);
     paths_[train_send_info.first].reset();
     changed_commited_ = true;

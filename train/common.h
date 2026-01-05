@@ -9,6 +9,7 @@
 #include <vector>
 #include <string>
 #include <map>
+#include <unordered_map>
 
 struct Wagon {
     int number;
@@ -30,7 +31,7 @@ struct Train {
     std::vector<Wagon> wagons;
 };
 
-const static std::map<LocoType, int> locomotiveCapacity = {
+const static std::unordered_map<LocoType, int> locomotiveCapacity = {
     {LocoType::kDiesel24, 24},
     {LocoType::kDiesel64, 64},
     {LocoType::kElectro16, 16},
@@ -49,13 +50,13 @@ const static std::map<TrainType, int> trainPriorityToSend = {
     {TrainType::kDanger, 3},
 };
 
-const static std::map<WagonType, TrainType> wagonTrainMapper = {
+const static std::unordered_map<WagonType, TrainType> wagonTrainMapper = {
     {WagonType::kPass, TrainType::kPass},
     {WagonType::kDanger, TrainType::kDanger},
     {WagonType::kFreight, TrainType::kFreight},
 };
 
-const static std::map<TrainType, WagonType> trainWagonMapper = {
+const static std::unordered_map<TrainType, WagonType> trainWagonMapper = {
     {TrainType::kPass, WagonType::kPass},
     {TrainType::kDanger, WagonType::kDanger},
     {TrainType::kFreight, WagonType::kFreight},
@@ -177,7 +178,7 @@ inline std::ostream& operator<<(std::ostream& os, LocoType loco_type) {
     return os;
 }
 
-inline std::ostream& operator<<(std::ostream& os, const std::map<WagonType, std::vector<Wagon>> &wagons) {
+inline std::ostream& operator<<(std::ostream& os, const std::unordered_map<WagonType, std::vector<Wagon>> &wagons) {
     size_t sum_size = 0;
     for (const auto &[wagon_type, wagon_vect] : wagons) {
         std::cout << wagon_type << ": " << wagon_vect.size() << "; ";
@@ -188,7 +189,7 @@ inline std::ostream& operator<<(std::ostream& os, const std::map<WagonType, std:
 }
 
 template <typename T>
-inline std::ostream& operator<<(std::ostream& os, const std::map<T, size_t> &mapper_amount) {
+inline std::ostream& operator<<(std::ostream& os, const std::unordered_map<T, size_t> &mapper_amount) {
     size_t sum_size = 0;
     for (const auto [current_type, size_of_current_type] : mapper_amount) {
         std::cout << current_type << ": " << size_of_current_type << "; ";

@@ -10,13 +10,13 @@ inline void test_sorting_hill_stats_basic() {
     assert(stats.GetPathSetuped() == 0);
     assert(stats.GetTrinesPlaned() == 0);
     
-    stats.incPath();
-    stats.incPath();
+    stats.IncPath();
+    stats.IncPath();
     assert(stats.GetPathSetuped() == 2);
     
-    stats.incTrainsPlaned();
-    stats.incTrainsPlaned();
-    stats.incTrainsPlaned();
+    stats.IncTrainsPlaned();
+    stats.IncTrainsPlaned();
+    stats.IncTrainsPlaned();
     assert(stats.GetTrinesPlaned() == 3);
     
     std::cout << "Basic stats tests passed!\n";
@@ -27,9 +27,9 @@ inline void test_sorting_hill_stats_locomotives() {
     Locomotive diesel{LocoType::kDiesel24};
     Locomotive electro{LocoType::kElectro32};
     
-    stats.incLoco(diesel);
-    stats.incLoco(electro);
-    stats.incLoco(electro);
+    stats.IncLoco(diesel);
+    stats.IncLoco(electro);
+    stats.IncLoco(electro);
     
     auto locomotives = stats.GetLocomotivesArrived();
     assert(locomotives[LocoType::kDiesel24] == 1);
@@ -42,11 +42,11 @@ inline void test_sorting_hill_stats_locomotives() {
 inline void test_sorting_hill_stats_wagons() {
     SortingHillStats stats;
     
-    stats.incWagon(Wagon{1, WagonType::kFreight});
-    stats.incWagon(Wagon{2, WagonType::kPass});
-    stats.incWagon(Wagon{3, WagonType::kPass});
-    stats.incWagon(Wagon{4, WagonType::kEmpty});
-    stats.incWagon(Wagon{5, WagonType::kDanger});
+    stats.IncWagon(Wagon{1, WagonType::kFreight});
+    stats.IncWagon(Wagon{2, WagonType::kPass});
+    stats.IncWagon(Wagon{3, WagonType::kPass});
+    stats.IncWagon(Wagon{4, WagonType::kEmpty});
+    stats.IncWagon(Wagon{5, WagonType::kDanger});
     
     auto wagons = stats.GetWagonStats();
     assert(wagons[WagonType::kFreight] == 1);
@@ -55,7 +55,7 @@ inline void test_sorting_hill_stats_wagons() {
     assert(wagons[WagonType::kDanger] == 1);
     
     for (int i = 0; i < 5; i++) {
-        stats.incWagon(Wagon{10 + i, WagonType::kFreight});
+        stats.IncWagon(Wagon{10 + i, WagonType::kFreight});
     }
     
     wagons = stats.GetWagonStats();
@@ -67,10 +67,10 @@ inline void test_sorting_hill_stats_wagons() {
 inline void test_sorting_hill_stats_trains() {
     SortingHillStats stats;
     
-    stats.incTrainsSent(TrainType::kFreight);
-    stats.incTrainsSent(TrainType::kPass);
-    stats.incTrainsSent(TrainType::kFreight);
-    stats.incTrainsSent(TrainType::kDanger);
+    stats.IncTrainsSent(TrainType::kFreight);
+    stats.IncTrainsSent(TrainType::kPass);
+    stats.IncTrainsSent(TrainType::kFreight);
+    stats.IncTrainsSent(TrainType::kDanger);
     
     auto trains = stats.GetTrainsSentAmount();
     assert(trains[TrainType::kFreight] == 2);
@@ -78,7 +78,7 @@ inline void test_sorting_hill_stats_trains() {
     assert(trains[TrainType::kDanger] == 1);
     
     for (int i = 0; i < 3; i++) {
-        stats.incTrainsSent(TrainType::kPass);
+        stats.IncTrainsSent(TrainType::kPass);
     }
     
     trains = stats.GetTrainsSentAmount();
